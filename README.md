@@ -7,4 +7,5 @@ modules used:
 #   PySimpleGUI - 4.60.5                            #
 
 menu.py - the edit menu was created based on the PySimpleGUI - 4.60.5 in 2023, 
-then completely free, python module
+then completely free, python module.
+You can still find it on GitHub.
