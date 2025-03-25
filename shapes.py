@@ -131,7 +131,7 @@ class Rectangle(patches.Rectangle, PointPatch):
 
         
 class Polygon(patches.Polygon):
-    def __init__(self, xy, closed=True, **kwargs):
+    def __init__(self, xy, closed=True, angle=0, **kwargs):
         super().__init__(xy, closed=closed, **kwargs)
 
         self.jumper = True  # can jump between domains
@@ -139,7 +139,8 @@ class Polygon(patches.Polygon):
         # dxy it's a numpy array of distances between
         # vertex_0 and every other vertex
         self.dxy = self.get_xy() - self.get_xy()[0]
-        self._angle = 0 # degree
+        self._angle = 0
+        self.set_angle(angle) # degree
     
     def get_position(self):
         return self.get_xy()[0].tolist()
@@ -176,6 +177,24 @@ class Polygon(patches.Polygon):
         return self._angle
 
     angle = property(get_angle, set_angle)
+
+    
+class FancyArrow(patches.FancyArrow, Polygon):
+    """
+    !!! not finished yet !!!
+    """
+    
+    def __init__(self, x, y, dx, dy, width=0.001, **kwargs):
+        super().__init__(x, y, dx, dy, width=0.001, **kwargs)
+
+        self.jumper = True  # can jump between domains
+    
+    def get_position(self):
+        return self.get_xy()
+    
+    def set_position(self, xy):
+        self.set_xy(xy)
+       
 
     
 
