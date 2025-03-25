@@ -169,7 +169,14 @@ txt4 = ax.text(0.01, 0.8, 'Choose\nvalues\nto calculate', clip_on=True,
                 rotation=-30, fontsize=12, fontweight='bold', c=c_data, bbox=b_data,
                 transform_rotates_text=True) # False = keeps displey angle
 
-exar = [txt1, txt4]
+txt5 = ax.text(0.8, 0.8, 'This is\npik value\nof frequency',
+                rotation=30, fontsize=12, fontweight='bold', c=c_ax,
+                horizontalalignment='center', clip_on=True,
+                verticalalignment='top', transform_rotates_text=True,
+                transform=ax.transAxes)
+
+
+exar = [txt1, txt4, txt5]
 
 elli = Ellipse((2.2, 2.5), 0.1, 1, color=c_data, alpha=0.7, clip_on=False,
                    gid='elli')
@@ -199,10 +206,11 @@ ax.add_artist(rec2)
 
 exar += [rec1, rec2]
 
-poly = [[0.2, 0.4], [0.4, 0.4], [0.3, 0.6]]
+poly = [[0.2, 0.4], [0.3, 0.3], [0.25, 0.42]]
     
-tri1 = Polygon(poly, color=c_ax, alpha=0.7, clip_on=False, gid='tri1',
-                   transform=ax.transAxes)
+tri1 = Polygon(poly, color=c_ax, alpha=0.7, clip_on=False,
+               gid='tri1', angle=45,
+               transform=ax.transAxes)
         
 ax.add_patch(tri1)
 
