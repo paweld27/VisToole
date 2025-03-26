@@ -6,6 +6,6 @@ modules used:
 #   matplotlib  - 3.7.4                             #
 #   PySimpleGUI - 4.60.5                            #
 
-menu.py - the edit menu was created based on the PySimpleGUI - 4.60.5 in 2023, 
+vis_menu.py - the edit menu was created based on the PySimpleGUI - 4.60.5 in 2023, 
 then completely free, python module.
 You can still find it on GitHub.
