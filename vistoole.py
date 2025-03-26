@@ -19,7 +19,7 @@ from matplotlib.transforms import Bbox
 import matplotlib.pyplot as plt
 from matplotlib.patches import Patch
 from matplotlib.artist import Artist
-from menu import edit_ml_label, patch_style
+from vis_menu import edit_ml_label, patch_style
 
 
 
