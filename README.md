@@ -1,8 +1,8 @@
 # VisToole
 Matplotlib - artists dragging, plot editing and interactive visualization support tools.
 
-modules used:
 #   python      - 3.8.10                            #
+libraries used:
 #   matplotlib  - 3.7.4                             #
 #   PySimpleGUI - 4.60.5                            #
 
