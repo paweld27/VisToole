@@ -132,6 +132,11 @@ def patch_style(patch):
         angle = 0;
         angle_disabled = True
 
+    movxy_opt = ['begin', 'center', 'end']
+    movxy = 'None'
+    if hasattr(patch, 'movxy'):
+        movxy = patch.movxy
+
     gid = patch.get_gid()
     if gid == None:
         gid = ''
@@ -151,6 +156,13 @@ def patch_style(patch):
         if not angle_disabled:
             patch.set_angle(angle)
 
+        if movxy in movxy_opt:
+            patch.movxy = movxy
+            patch._make_verts()
+            patch.set_xy(patch.verts)
+            patch.dxy = patch.get_xy() - patch.get_xy()[0]
+
+            
         new_domain = domain
         if domain != 'Figure':
             new_domain = win['domain'].get()
@@ -235,21 +247,6 @@ def patch_style(patch):
         ]
     ]
 
-
-    ok_layout = [
-        [sg.HSeparator(pad=(0, 10))],
-
-        [sg.Button(' Close ', key='Ok', font=('normal', 12), bind_return_key=True),
-         sg.Push(),
-
-         sg.Text(sg_cpr_text, font=('italic', 8)),
-
-         sg.Push(),
-         sg.Button('Set style', key='set_style', enable_events=True, font=('normal', 12),
-                   button_color=('white', 'green'))
-         ]
-        ]
-
     
     transform_layout = [
         [sg.Text('Domain: ', font=('normal', 12)),
@@ -271,6 +268,16 @@ def patch_style(patch):
                    disabled=angle_disabled)
          ]]
 
+    movxy_layout = [
+         sg.Push(),
+         sg.Text('movxy: ', font=('normal', 12)),
+         sg.Combo(movxy_opt , default_value=movxy, 
+                  key='movxy', font=('bold', 12), readonly=True,
+                  disabled = True if movxy == 'None' else False,
+                  button_arrow_color='blue', button_background_color='white', size=(6, None)),
+
+        ]
+
     delete_layout = [
         [sg.HSeparator(pad=(0, 10))],
         [
@@ -280,15 +287,30 @@ def patch_style(patch):
         ]
       ]
 
+    ok_layout = [
+        [sg.HSeparator(pad=(0, 10))],
+
+        [sg.Button(' Close ', key='Ok', font=('normal', 12), bind_return_key=True),
+         sg.Push(),
+
+         sg.Text(sg_cpr_text, font=('italic', 8)),
+
+         sg.Push(),
+         sg.Button('Set style', key='set_style', enable_events=True, font=('normal', 12),
+                   button_color=('white', 'green'))
+         ]
+        ]
+
+
     if patch in fig.get_children():
-        layout = layout1 + [fig_domain_layout] + [delete_layout] + [ok_layout]
+        layout = layout1 + [fig_domain_layout] + [movxy_layout] + [delete_layout] + [ok_layout]
     else:
-        layout = layout1 + [transform_layout] + [delete_layout] + [ok_layout]
+        layout = layout1 + [transform_layout] + [movxy_layout] + [delete_layout] + [ok_layout]
         
 
     win = sg.Window(title_win, layout, finalize = True, return_keyboard_events=True,
                     force_toplevel=True,
-                    keep_on_top=True, modal=True,
+                    keep_on_top=True, # modal=True,
                     )
 
     butt = ['face', 'edge', 'Ok', 'set_style']
@@ -339,6 +361,7 @@ def patch_style(patch):
             ln_alpha = round(str2dig(win['ln_alpha'].get()), 2)
             clip_on = win['clip_on'].get()
             angle = round(str2dig(win['angle'].get()), 2)
+            movxy = win['movxy'].get()
 
             domain = set_style()      
 
@@ -566,7 +589,7 @@ def edit_ml_label(title, label, msg='Label name:', rows=1, redraw=True, text_too
     ]
 
     text_layout = [
-        [sg.Text('Change title', font=('normal', 12), tooltip=None)],
+        [sg.Text('Change label', font=('normal', 12), tooltip=None)],
 
         [sg.Multiline(label_text, size=(ww, rows), enable_events=True, key='input', font=('normal', 12),
                       expand_x=True, expand_y=True, justification='left', sbar_width=16)],

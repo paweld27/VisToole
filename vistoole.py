@@ -1711,7 +1711,7 @@ def Vistoole(toolsy, **kwargs):
 
 if __name__ == "__main__":
     import sys
-    from shapes import Annulus, Ellipse, Circle, Wedge, Rectangle, Polygon
+    from shapes import Annulus, Ellipse, Circle, Wedge, Rectangle, Polygon, FancyArrow
     import matplotlib.patches as patches
     
     
@@ -1926,6 +1926,13 @@ if __name__ == "__main__":
     ax.add_patch(wed1)
 
     exar += [tri1, wed1]
+
+    farr = FancyArrow(1, -2, 1, -1, width=0.1, fc='#9B9114', ec='black',
+                      gid='farr', transform=ax.transData)
+    ax.add_patch(farr)
+
+    exar += [farr]
+
     
 
 ##########################################################

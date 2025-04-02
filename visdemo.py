@@ -20,7 +20,7 @@ import sys
 import pandas as pd
 import numpy as np
 import vistoole as vs
-from shapes import Annulus, Ellipse, Circle, Wedge, Rectangle, Polygon
+from shapes import Annulus, Ellipse, Circle, Wedge, Rectangle, Polygon, FancyArrow
 import matplotlib.pyplot as plt
 import matplotlib.patches as patches
 
@@ -220,7 +220,12 @@ wed1 = Wedge((0.7, 0.2), 0.1, -135, 135, width=0.05, color=c_ax, alpha=0.7,
 ax.add_patch(wed1)
 
 exar += [tri1, wed1]
-    
+
+farr = FancyArrow(1, -2, 1, -1, width=0.1, fc='#9B9114', ec='black', gid='farr',
+                  transform=ax.transData)
+ax.add_patch(farr)
+
+exar += [farr]
 
 
 ##########################################################

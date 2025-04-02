@@ -140,7 +140,6 @@ class Polygon(patches.Polygon):
         # vertex_0 and every other vertex
         self.dxy = self.get_xy() - self.get_xy()[0]
         self._angle = 0
-        self.set_angle(angle) # degree
     
     def get_position(self):
         return self.get_xy()[0].tolist()
@@ -178,24 +177,68 @@ class Polygon(patches.Polygon):
 
     angle = property(get_angle, set_angle)
 
+
     
 class FancyArrow(patches.FancyArrow, Polygon):
-    """
-    !!! not finished yet !!!
-    """
     
-    def __init__(self, x, y, dx, dy, width=0.001, **kwargs):
-        super().__init__(x, y, dx, dy, width=0.001, **kwargs)
+    def __init__(self, x, y, dx, dy, width=0.001, movxy='center', **kwargs):
+        super().__init__(x, y, dx, dy, width=width, length_includes_head=True,
+                         head_length=3*width,
+                         **kwargs)
 
         self.jumper = True  # can jump between domains
-    
-    def get_position(self):
-        return self.get_xy()
-    
-    def set_position(self, xy):
-        self.set_xy(xy)
-       
+        if movxy not in ['begin', 'center', 'end']:
+            movxy = 'center'
+        self.movxy = movxy
 
-    
+    def get_position(self):
+
+        if self.movxy == 'begin':
+            return [self._x, self._y]
+        else:    
+            return self.get_xy()[0].tolist()
+        
+    def set_position(self, xy):
+
+        if self.movxy == 'begin':
+            self._x = xy[0]
+            self._y = xy[1]
+            self._dx = self.get_xy()[0][0] - self._x
+            self._dy = self.get_xy()[0][1] - self._y
+            
+            self._make_verts()
+            self.set_xy(self.verts)
+            self.dxy = self.get_xy() - self.get_xy()[0]
+
+        elif self.movxy == 'center':
+            self.set_xy(self.dxy + xy)
+            # begin coords
+            self._x = self.get_xy()[0][0] - self._dx
+            self._y = self.get_xy()[0][1] - self._dy
+
+        elif self.movxy == 'end':
+            self._dx = xy[0] - self._x
+            self._dy = xy[1] - self._y
+            
+            self._make_verts()
+            self.set_xy(self.verts)
+            self.dxy = self.get_xy() - self.get_xy()[0]
+     
+    def jump_to_data(self):
+        super().jump_to_data()
+        """
+        self._make_verts()
+        self.set_xy(self.verts)
+        self.dxy = self.get_xy() - self.get_xy()[0]
+        """
+       
+    def jump_to_axes(self):
+        super().jump_to_axes()
+        """
+        self._make_verts()
+        self.set_xy(self.verts)
+        self.dxy = self.get_xy() - self.get_xy()[0]
+        """
+
 
         
