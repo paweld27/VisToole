@@ -132,10 +132,10 @@ def patch_style(patch):
         angle = 0;
         angle_disabled = True
 
-    movxy_opt = ['begin', 'center', 'end']
-    movxy = 'None'
-    if hasattr(patch, 'movxy'):
-        movxy = patch.movxy
+    grab_opt = ['head', 'middle', 'tail']
+    grab = 'None'
+    if hasattr(patch, 'grab'):
+        grab = patch.grab
 
     gid = patch.get_gid()
     if gid == None:
@@ -156,8 +156,8 @@ def patch_style(patch):
         if not angle_disabled:
             patch.set_angle(angle)
 
-        if movxy in movxy_opt:
-            patch.movxy = movxy
+        if grab in grab_opt:
+            patch.grab = grab
             patch._make_verts()
             patch.set_xy(patch.verts)
             patch.dxy = patch.get_xy() - patch.get_xy()[0]
@@ -268,13 +268,15 @@ def patch_style(patch):
                    disabled=angle_disabled)
          ]]
 
-    movxy_layout = [
+    grab_layout = [
          sg.Push(),
-         sg.Text('movxy: ', font=('normal', 12)),
-         sg.Combo(movxy_opt , default_value=movxy, 
-                  key='movxy', font=('bold', 12), readonly=True,
-                  disabled = True if movxy == 'None' else False,
-                  button_arrow_color='blue', button_background_color='white', size=(6, None)),
+         sg.Text('grab for: ', font=('normal', 12),
+                 tooltip="Active immediately"),
+         sg.Combo(grab_opt , default_value=grab, enable_events=True,
+                  key='grab', font=('bold', 12), readonly=True,
+                  disabled = True if grab == 'None' else False,
+                  button_arrow_color='blue', button_background_color='white', size=(6, None),
+                  tooltip="Active immediately"),
 
         ]
 
@@ -303,9 +305,9 @@ def patch_style(patch):
 
 
     if patch in fig.get_children():
-        layout = layout1 + [fig_domain_layout] + [movxy_layout] + [delete_layout] + [ok_layout]
+        layout = layout1 + [fig_domain_layout] + [grab_layout] + [delete_layout] + [ok_layout]
     else:
-        layout = layout1 + [transform_layout] + [movxy_layout] + [delete_layout] + [ok_layout]
+        layout = layout1 + [transform_layout] + [grab_layout] + [delete_layout] + [ok_layout]
         
 
     win = sg.Window(title_win, layout, finalize = True, return_keyboard_events=True,
@@ -353,6 +355,14 @@ def patch_style(patch):
         if event == 'zorder':
             zorder = round(str2dig(win['zorder'].get()), 2)
 
+        if event == 'grab':
+            grab = win['grab'].get()
+            patch.grab = grab
+            patch._make_verts()
+            patch.set_xy(patch.verts)
+            patch.dxy = patch.get_xy() - patch.get_xy()[0]
+
+
         if event == 'set_style':
             ln_width = win['lwidth'].get()
             ln_width = round(str2dig(win['lwidth'].get()), 2)
@@ -361,7 +371,6 @@ def patch_style(patch):
             ln_alpha = round(str2dig(win['ln_alpha'].get()), 2)
             clip_on = win['clip_on'].get()
             angle = round(str2dig(win['angle'].get()), 2)
-            movxy = win['movxy'].get()
 
             domain = set_style()      
 

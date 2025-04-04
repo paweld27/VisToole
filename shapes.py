@@ -19,6 +19,7 @@ If they are not to be moved, original patches can be used.
 from matplotlib.artist import Artist
 import matplotlib.patches as patches
 from matplotlib.transforms import Affine2D
+import numpy as np
 
 
 class PointPatch:
@@ -181,26 +182,27 @@ class Polygon(patches.Polygon):
     
 class FancyArrow(patches.FancyArrow, Polygon):
     
-    def __init__(self, x, y, dx, dy, width=0.001, movxy='center', **kwargs):
+    def __init__(self, x, y, dx, dy, width=0.001, grab='middle', **kwargs):
         super().__init__(x, y, dx, dy, width=width, length_includes_head=True,
                          head_length=3*width,
                          **kwargs)
 
         self.jumper = True  # can jump between domains
-        if movxy not in ['begin', 'center', 'end']:
-            movxy = 'center'
-        self.movxy = movxy
+        if grab not in ['head', 'middle', 'tail']:
+            grab = 'middle'
+        self.grab = grab
+        
 
     def get_position(self):
 
-        if self.movxy == 'begin':
+        if self.grab == 'tail':
             return [self._x, self._y]
         else:    
             return self.get_xy()[0].tolist()
         
     def set_position(self, xy):
 
-        if self.movxy == 'begin':
+        if self.grab == 'tail':
             self._x = xy[0]
             self._y = xy[1]
             self._dx = self.get_xy()[0][0] - self._x
@@ -210,35 +212,44 @@ class FancyArrow(patches.FancyArrow, Polygon):
             self.set_xy(self.verts)
             self.dxy = self.get_xy() - self.get_xy()[0]
 
-        elif self.movxy == 'center':
+        elif self.grab == 'middle':
             self.set_xy(self.dxy + xy)
             # begin coords
             self._x = self.get_xy()[0][0] - self._dx
             self._y = self.get_xy()[0][1] - self._dy
 
-        elif self.movxy == 'end':
+        elif self.grab == 'head':
             self._dx = xy[0] - self._x
             self._dy = xy[1] - self._y
             
             self._make_verts()
             self.set_xy(self.verts)
             self.dxy = self.get_xy() - self.get_xy()[0]
+
+    def _update_param(self):
+        xy = self.get_xy()
+        self._width = np.hypot(xy[3][0]-xy[4][0], xy[3][1]-xy[4][1])      # stsrt
+        self._head_width = np.hypot(xy[1][0]-xy[6][0], xy[1][1]-xy[6][1])
+        
+        x0 = (xy[1][0]+xy[6][0])/2.0
+        y0 = (xy[1][1]+xy[6][1])/2.0
+        self._head_length = np.hypot(xy[0][0]-x0, xy[0][1]-y0)
+
+        self._dx = self.get_xy()[0][0] - self._x
+        self._dy = self.get_xy()[0][1] - self._y
+        self._make_verts()
+        
      
     def jump_to_data(self):
         super().jump_to_data()
-        """
-        self._make_verts()
-        self.set_xy(self.verts)
-        self.dxy = self.get_xy() - self.get_xy()[0]
-        """
+        self._x, self._y = self.axes.transLimits.inverted().transform([self._x, self._y])
+        self._update_param()
        
     def jump_to_axes(self):
         super().jump_to_axes()
-        """
-        self._make_verts()
-        self.set_xy(self.verts)
-        self.dxy = self.get_xy() - self.get_xy()[0]
-        """
+        self._x, self._y = self.axes.transLimits.transform([self._x, self._y])
+        self._update_param()
+
 
 
         
