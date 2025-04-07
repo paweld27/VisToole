@@ -1,5 +1,8 @@
 # VisToole
 Matplotlib - artists dragging, plot editing and interactive visualization support tools.
+To effectively use VisToole's capabilities it is advisable to use patches from the shapes.py module.
+Patches from this module have standardized get_position() and set_position() functions.
+It was not the intention to modify the original matplotlib functions, e.g. via decorators.
 
 #   python      - 3.8.10                            #
 libraries used:
