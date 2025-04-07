@@ -192,6 +192,24 @@ class FancyArrow(patches.FancyArrow, Polygon):
             grab = 'middle'
         self.grab = grab
         
+        
+    def set_grab(self, xy):   # dist = pik - first_grab
+        dist_head = np.hypot(self.get_xy()[0][0]-xy[0], self.get_xy()[0][1]-xy[1])
+        dist_tail = np.hypot(self._x-xy[0], self._y-xy[1])
+        head_tail = np.hypot(self._dx, self._dy)
+        self.grab = 'middle'
+        if head_tail > 0.0:
+            to_head = dist_head / head_tail
+            to_tail = dist_tail / head_tail
+            if to_head < 0.3:
+                self.grab = 'head'
+            elif to_tail < 0.3:
+                self.grab = 'tail'
+
+        self._make_verts()
+        self.set_xy(self.verts)
+        self.dxy = self.get_xy() - self.get_xy()[0]
+
 
     def get_position(self):
 

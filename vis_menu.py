@@ -132,11 +132,6 @@ def patch_style(patch):
         angle = 0;
         angle_disabled = True
 
-    grab_opt = ['head', 'middle', 'tail']
-    grab = 'None'
-    if hasattr(patch, 'grab'):
-        grab = patch.grab
-
     gid = patch.get_gid()
     if gid == None:
         gid = ''
@@ -155,13 +150,6 @@ def patch_style(patch):
                   alpha=None)  # otherwise ln_alpha does'n take effect
         if not angle_disabled:
             patch.set_angle(angle)
-
-        if grab in grab_opt:
-            patch.grab = grab
-            patch._make_verts()
-            patch.set_xy(patch.verts)
-            patch.dxy = patch.get_xy() - patch.get_xy()[0]
-
             
         new_domain = domain
         if domain != 'Figure':
@@ -268,18 +256,6 @@ def patch_style(patch):
                    disabled=angle_disabled)
          ]]
 
-    grab_layout = [
-         sg.Push(),
-         sg.Text('grab for: ', font=('normal', 12),
-                 tooltip="Active immediately"),
-         sg.Combo(grab_opt , default_value=grab, enable_events=True,
-                  key='grab', font=('bold', 12), readonly=True,
-                  disabled = True if grab == 'None' else False,
-                  button_arrow_color='blue', button_background_color='white', size=(6, None),
-                  tooltip="Active immediately"),
-
-        ]
-
     delete_layout = [
         [sg.HSeparator(pad=(0, 10))],
         [
@@ -305,9 +281,9 @@ def patch_style(patch):
 
 
     if patch in fig.get_children():
-        layout = layout1 + [fig_domain_layout] + [grab_layout] + [delete_layout] + [ok_layout]
+        layout = layout1 + [fig_domain_layout] + [delete_layout] + [ok_layout]
     else:
-        layout = layout1 + [transform_layout] + [grab_layout] + [delete_layout] + [ok_layout]
+        layout = layout1 + [transform_layout] + [delete_layout] + [ok_layout]
         
 
     win = sg.Window(title_win, layout, finalize = True, return_keyboard_events=True,

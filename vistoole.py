@@ -111,6 +111,8 @@ class MoveXY(TopVistoole):
         self.yonly = False
         self.fig = None
         self.ax = None
+        self.xstart = 0
+        self.ystart = 0
         
         for (k, v) in kwargs.items():
             if k in self.__dict__:
@@ -141,6 +143,8 @@ class MoveXY(TopVistoole):
         else:                   # if it's 'pick_event'
             xy = (event.mouseevent.x, event.mouseevent.y)
         self.xy = self.transOrygin.inverted().transform(xy)
+        if hasattr(self.obj, 'grab'):
+            self.obj.set_grab(self.xy)
         self.follower = self.fig.canvas.mpl_connect("motion_notify_event", self._make_drag)
         self.releaser = self.fig.canvas.mpl_connect("button_release_event", self._stop)
         self.is_move = True
