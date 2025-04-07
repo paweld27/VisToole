@@ -1660,23 +1660,8 @@ def Vistoole(toolsy, **kwargs):
             leg_dict[k] = v
 
 
-    if 'x' in toolsy:
-        buttons = False
-        if 'xb' in toolsy:
-            buttons = True
-        cXX = Move2Curr('x', 'x1', 'x2', **plot_dict, buttons=buttons,
-                        pos1=0.03, pos2=0.07,)
+    if 'exar' in toolsy:
         
-    if 'y' in toolsy:
-        buttons = False
-        if 'yb' in toolsy:
-             buttons = True
-        cYY = Move2Curr('y', 'y1', 'y2', **plot_dict, buttons=buttons)
-
-    if 'leg' in toolsy:
-        legV = LegView(**leg_dict)
-
-    if 'exar' in toolsy:        
         if 'exar' in kwargs:
             zx = kwargs['exar']
             za = [c for c in zx]
@@ -1699,6 +1684,25 @@ def Vistoole(toolsy, **kwargs):
         vis_move = MoveXY(**plot_dict)
         vis_pick_ev_id = fig.canvas.mpl_connect('pick_event',
                                                 vis_on_pick)
+        tlsy = toolsy.replace('exar', '')
+    else:
+        tlsy = toolsy
+
+    if 'x' in tlsy:
+        buttons = False
+        if 'xb' in toolsy:
+            buttons = True
+        cXX = Move2Curr('x', 'x1', 'x2', **plot_dict, buttons=buttons,
+                        pos1=0.03, pos2=0.07,)
+        
+    if 'y' in toolsy:
+        buttons = False
+        if 'yb' in toolsy:
+             buttons = True
+        cYY = Move2Curr('y', 'y1', 'y2', **plot_dict, buttons=buttons)
+
+    if 'leg' in toolsy:
+        legV = LegView(**leg_dict)
 
     kbd_ev_id = fig.canvas.mpl_connect('key_press_event',
                                         toggle_visible)
