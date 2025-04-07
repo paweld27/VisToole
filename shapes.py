@@ -187,7 +187,7 @@ class FancyArrow(patches.FancyArrow, Polygon):
                          head_length=3*width,
                          **kwargs)
 
-        self.jumper = True  # can jump between domains
+        self.jumper = True    # can jump between domains
         if grab not in ['head', 'middle', 'tail']:
             grab = 'middle'
         self.grab = grab
@@ -246,7 +246,7 @@ class FancyArrow(patches.FancyArrow, Polygon):
 
     def _update_param(self):
         xy = self.get_xy()
-        self._width = np.hypot(xy[3][0]-xy[4][0], xy[3][1]-xy[4][1])      # stsrt
+        self._width = np.hypot(xy[3][0]-xy[4][0], xy[3][1]-xy[4][1])      # start
         self._head_width = np.hypot(xy[1][0]-xy[6][0], xy[1][1]-xy[6][1])
         
         x0 = (xy[1][0]+xy[6][0])/2.0
@@ -259,11 +259,13 @@ class FancyArrow(patches.FancyArrow, Polygon):
         
      
     def jump_to_data(self):
+        self.set_grab(self.get_xy()[0])  #  head
         super().jump_to_data()
         self._x, self._y = self.axes.transLimits.inverted().transform([self._x, self._y])
         self._update_param()
        
     def jump_to_axes(self):
+        self.set_grab(self.get_xy()[0])  #  head
         super().jump_to_axes()
         self._x, self._y = self.axes.transLimits.transform([self._x, self._y])
         self._update_param()
