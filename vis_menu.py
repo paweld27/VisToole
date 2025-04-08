@@ -17,6 +17,9 @@ import PySimpleGUI as sg
 from tkinter import colorchooser
 import matplotlib as mpl
 from matplotlib.artist import Artist
+import matplotlib.patches as patches
+import matplotlib.transforms as transforms
+from shapes import FancyArrow
 
 
 sg.theme('Default1')
@@ -150,6 +153,11 @@ def patch_style(patch):
                   alpha=None)  # otherwise ln_alpha does'n take effect
         if not angle_disabled:
             patch.set_angle(angle)
+
+        if isinstance(patch, FancyArrow):
+            patch.set_data(width=str2dig(win['ar_width'].get()),
+                           head_width=str2dig(win['hd_width'].get()),
+                           head_length=str2dig(win['hd_length'].get()))
             
         new_domain = domain
         if domain != 'Figure':
@@ -173,6 +181,12 @@ def patch_style(patch):
                     #patch._recompute_transform()
 
                 patch.set(transform=transform)
+
+            if isinstance(patch, FancyArrow):
+                win['ar_width'].update(round(patch._width, 5))
+                win['hd_width'].update(round(patch._head_width, 5))
+                win['hd_length'].update(round(patch._head_length, 5))
+
 
         fig.canvas.draw()
         return new_domain
@@ -279,11 +293,33 @@ def patch_style(patch):
          ]
         ]
 
+    fancy_arrow_layout = [
+        
+         sg.Text('ar.width: ', font=('normal', 12)),
+         sg.Input(default_text=round(patch._width, 5), key='ar_width', font=('normal', 12),
+                  size=(7, None)),
+         sg.Push(),
+
+         sg.Text('hd.width: ', font=('normal', 12)),
+         sg.Input(default_text=round(patch._head_width, 5), key='hd_width', font=('normal', 12),
+                  size=(7, None)),
+         sg.Push(),
+         
+         sg.Text('hd.length: ', font=('normal', 12)),
+         sg.Input(default_text=round(patch._head_length, 5), key='hd_length', font=('normal', 12),
+                  size=(7, None))
+        ]
+
 
     if patch in fig.get_children():
-        layout = layout1 + [fig_domain_layout] + [delete_layout] + [ok_layout]
+        layout = layout1 + [fig_domain_layout] #+ [delete_layout] + [ok_layout]
     else:
-        layout = layout1 + [transform_layout] + [delete_layout] + [ok_layout]
+        layout = layout1 + [transform_layout] #+ [delete_layout] + [ok_layout]
+
+    if isinstance(patch, FancyArrow):
+        layout += [fancy_arrow_layout]
+
+    layout += [delete_layout] + [ok_layout]
         
 
     win = sg.Window(title_win, layout, finalize = True, return_keyboard_events=True,
@@ -348,7 +384,8 @@ def patch_style(patch):
             clip_on = win['clip_on'].get()
             angle = round(str2dig(win['angle'].get()), 2)
 
-            domain = set_style()      
+            domain = set_style()
+            
 
         if event in ('Escape:27', 'Cancel', sg.WIN_CLOSED):
             win.close()

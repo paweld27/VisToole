@@ -181,16 +181,28 @@ class Polygon(patches.Polygon):
 
     
 class FancyArrow(patches.FancyArrow, Polygon):
+    """
+    'left', 'right' in mpl refer to observer view form the head
+    in shapes.py refer to arrow viewed from tail to head
+    so they are reversed
+    verts are counted according to head side started from top
+    or cw-like when 'full'
+    """
     
     def __init__(self, x, y, dx, dy, width=0.001, grab='middle', **kwargs):
+        
+        kwargs['shape'] = 'full'  # currently 'full' version is forced
+            
         super().__init__(x, y, dx, dy, width=width, length_includes_head=True,
                          head_length=3*width,
                          **kwargs)
 
         self.jumper = True    # can jump between domains
+
         if grab not in ['head', 'middle', 'tail']:
             grab = 'middle'
         self.grab = grab
+        self._update_param()
         
         
     def set_grab(self, xy):   # dist = pik - first_grab
@@ -245,7 +257,7 @@ class FancyArrow(patches.FancyArrow, Polygon):
             self.dxy = self.get_xy() - self.get_xy()[0]
 
     def _update_param(self):
-        xy = self.get_xy()
+        xy = self.get_xy()        
         self._width = np.hypot(xy[3][0]-xy[4][0], xy[3][1]-xy[4][1])      # start
         self._head_width = np.hypot(xy[1][0]-xy[6][0], xy[1][1]-xy[6][1])
         
