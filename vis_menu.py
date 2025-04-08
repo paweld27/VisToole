@@ -293,30 +293,30 @@ def patch_style(patch):
          ]
         ]
 
-    fancy_arrow_layout = [
-        
-         sg.Text('ar.width: ', font=('normal', 12)),
-         sg.Input(default_text=round(patch._width, 5), key='ar_width', font=('normal', 12),
-                  size=(7, None)),
-         sg.Push(),
-
-         sg.Text('hd.width: ', font=('normal', 12)),
-         sg.Input(default_text=round(patch._head_width, 5), key='hd_width', font=('normal', 12),
-                  size=(7, None)),
-         sg.Push(),
-         
-         sg.Text('hd.length: ', font=('normal', 12)),
-         sg.Input(default_text=round(patch._head_length, 5), key='hd_length', font=('normal', 12),
-                  size=(7, None))
-        ]
-
 
     if patch in fig.get_children():
-        layout = layout1 + [fig_domain_layout] #+ [delete_layout] + [ok_layout]
+        layout = layout1 + [fig_domain_layout]
     else:
-        layout = layout1 + [transform_layout] #+ [delete_layout] + [ok_layout]
+        layout = layout1 + [transform_layout]
 
-    if isinstance(patch, FancyArrow):
+    if isinstance(patch, FancyArrow):    
+        fancy_arrow_layout = [
+        
+             sg.Text('ar.width: ', font=('normal', 12)),
+             sg.Input(default_text=round(patch._width, 5), key='ar_width', font=('normal', 12),
+                      size=(7, None)),
+             sg.Push(),
+
+             sg.Text('hd.width: ', font=('normal', 12)),
+             sg.Input(default_text=round(patch._head_width, 5), key='hd_width', font=('normal', 12),
+                      size=(7, None)),
+             sg.Push(),
+         
+             sg.Text('hd.length: ', font=('normal', 12)),
+             sg.Input(default_text=round(patch._head_length, 5), key='hd_length', font=('normal', 12),
+                      size=(7, None))
+            ]
+        
         layout += [fancy_arrow_layout]
 
     layout += [delete_layout] + [ok_layout]
