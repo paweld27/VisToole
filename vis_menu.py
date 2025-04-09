@@ -19,7 +19,7 @@ import matplotlib as mpl
 from matplotlib.artist import Artist
 import matplotlib.patches as patches
 import matplotlib.transforms as transforms
-from shapes import FancyArrow
+from shapes import Ellipse, Annulus, FancyArrow
 
 
 sg.theme('Default1')
@@ -159,6 +159,16 @@ def patch_style(patch):
                            head_width=str2dig(win['hd_width'].get()),
                            head_length=str2dig(win['hd_length'].get()))
             
+        elif isinstance(patch, Annulus):
+            patch.set_width(str2dig(win['an_width'].get()))
+            patch.set_radii((str2dig(win['an_ra'].get()),
+                             str2dig(win['an_rb'].get())))
+
+        elif isinstance(patch, Ellipse):
+            patch.width  = str2dig(win['el_width'].get())
+            patch.height = str2dig(win['el_height'].get())
+           
+
         new_domain = domain
         if domain != 'Figure':
             new_domain = win['domain'].get()
@@ -319,12 +329,53 @@ def patch_style(patch):
         
         layout += [fancy_arrow_layout]
 
+
+    elif isinstance(patch, Annulus):    
+        annulus_arrow_layout = [
+        
+             sg.Text('an.width: ', font=('normal', 12)),
+             sg.Input(default_text=round(patch.width, 5), key='an_width', font=('normal', 12),
+                      size=(7, None)),
+             sg.Push(),
+
+             sg.Text('an.ra: ', font=('normal', 12)),
+             sg.Input(default_text=round(patch.a, 5), key='an_ra', font=('normal', 12),
+                      size=(7, None)),
+             sg.Push(),
+         
+             sg.Text('an.rb: ', font=('normal', 12)),
+             sg.Input(default_text=round(patch.b, 5), key='an_rb', font=('normal', 12),
+                      size=(7, None))
+            ]
+        
+        layout += [annulus_arrow_layout]
+
+
+    elif isinstance(patch, Ellipse):    
+        ellipse_arrow_layout = [
+            [
+             sg.Push(),
+             sg.Text('width: ', font=('normal', 12)),
+             sg.Input(default_text=round(patch._width, 5), key='el_width', font=('normal', 12),
+                      size=(7, None))
+             ],
+            [
+             sg.Push(),
+             sg.Text('height: ', font=('normal', 12)),
+             sg.Input(default_text=round(patch._height, 5), key='el_height', font=('normal', 12),
+                      size=(7, None))
+             ]
+            ]
+        
+        layout += [ellipse_arrow_layout]
+
+
     layout += [delete_layout] + [ok_layout]
         
 
     win = sg.Window(title_win, layout, finalize = True, return_keyboard_events=True,
                     force_toplevel=True,
-                    keep_on_top=True, # modal=True,
+                    keep_on_top=True , modal=True,
                     )
 
     butt = ['face', 'edge', 'Ok', 'set_style']
