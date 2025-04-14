@@ -6,7 +6,7 @@
 #   ver. 0.900      - 01.2024                       #
 #                                                   #
 #   python     - 3.8.10                             #
-#   matplotlib - 7.7.4                              #
+#   matplotlib - 3.7.4                              #
 #                                                   #
 #####################################################
 
@@ -23,6 +23,8 @@ import numpy as np
 
 
 class PointPatch:
+
+    exar = []
 
     def get_position(self):
         return self.center
@@ -52,10 +54,15 @@ class PointPatch:
 
 
 class Annulus(patches.Annulus, PointPatch):
+    
+    kids = []
+    
     def __init__(self, xy, r, width, angle=0, **kwargs):
         super().__init__(xy, r, width, angle=angle, **kwargs)
 
         self.jumper = True  # can jump between domains
+        
+        Annulus.kids.append(self)
 
     def jump_to_data(self):
         w = self.get_width()
@@ -81,24 +88,39 @@ class Annulus(patches.Annulus, PointPatch):
  
 
 class Ellipse(patches.Ellipse, PointPatch):
+    
+    kids = []
+    
     def __init__(self, xy, width, height, angle=0, **kwargs):
         super().__init__(xy, width, height, angle=angle, **kwargs)
 
         self.jumper = True  # can jump between domains
+        
+        Ellipse.kids.append(self)
 
 
 class Circle(patches.Circle, PointPatch):
+    
+    kids = []
+    
     def __init__(self, xy, radius, **kwargs):
         super().__init__(xy, radius=radius, **kwargs)
 
         self.jumper = True  # can jump between domains
 
+        Circle.kids.append(self)
+
 
 class Wedge(patches.Wedge, PointPatch):
+    
+    kids = []
+    
     def __init__(self, center, r, theta1, theta2, *, width=None, **kwargs):
         super().__init__(center, r, theta1, theta2, width=width, **kwargs)
 
         self._angle = 0 # degree
+        
+        Wedge.kids.append(self)
 
     def set_angle(self, angle):
 
@@ -106,7 +128,6 @@ class Wedge(patches.Wedge, PointPatch):
         self.set_theta2(self.theta2+angle-self._angle)
         
         self._angle = angle
-
 
     def get_angle(self):
         """Return the angle of the ellipse."""
@@ -117,21 +138,30 @@ class Wedge(patches.Wedge, PointPatch):
         
 
 class Rectangle(patches.Rectangle, PointPatch):
+
+    kids = []
+    
     def __init__(self, xy, width, height, angle=0, *,
                  rotation_point='xy', **kwargs):
         super().__init__(xy, width, height, angle,
                          rotation_point=rotation_point, **kwargs)
 
         self.jumper = True  # can jump between domains
+        
+        Rectangle.kids.append(self)
     
     def get_position(self):
         return self.get_xy()
     
     def set_position(self, xy):
         self.set_xy(xy)
+        
 
         
 class Polygon(patches.Polygon):
+
+    kids = []
+    
     def __init__(self, xy, closed=True, angle=0, **kwargs):
         super().__init__(xy, closed=closed, **kwargs)
 
@@ -141,6 +171,8 @@ class Polygon(patches.Polygon):
         # vertex_0 and every other vertex
         self.dxy = self.get_xy() - self.get_xy()[0]
         self._angle = 0
+
+        Polygon.kids.append(self)
     
     def get_position(self):
         return self.get_xy()[0].tolist()
@@ -188,6 +220,8 @@ class FancyArrow(patches.FancyArrow, Polygon):
     verts are counted according to head side started from top
     or cw-like when 'full'
     """
+
+    kids = []
     
     def __init__(self, x, y, dx, dy, width=0.001, grab='middle', **kwargs):
         
@@ -203,6 +237,8 @@ class FancyArrow(patches.FancyArrow, Polygon):
             grab = 'middle'
         self.grab = grab
         self._update_param()
+
+        FancyArrow.kids.append(self)
         
         
     def set_grab(self, xy):   # dist = pik - first_grab

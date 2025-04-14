@@ -20,6 +20,7 @@ import matplotlib.pyplot as plt
 from matplotlib.patches import Patch
 from matplotlib.artist import Artist
 from vis_menu import edit_ml_label, patch_style
+from shapes import PointPatch as pp
 
 
 
@@ -65,6 +66,7 @@ class FIFO():
 
 
 class TopVistoole():
+    
     def __init__(self, **kwargs):
         self._addfunc = None
         self._prefunc = None
@@ -1598,6 +1600,7 @@ def Vistoole(toolsy, **kwargs):
 
 
     def vis_on_pick(event):
+        nonlocal za
 
         if event.mouseevent.button != 1:   #  right mouse button
             if not event.artist.get_visible():
@@ -1605,6 +1608,7 @@ def Vistoole(toolsy, **kwargs):
             
             if isinstance(event.artist, Patch):
                 patch_style(event.artist)
+                za = pp.exar
                 if event.artist in legV.legend.get_children():
                     label = edit_ml_label('Legend title',
                                           legV.legend.get_title(),
@@ -1613,7 +1617,8 @@ def Vistoole(toolsy, **kwargs):
                     fig.canvas.draw()
         
             elif event.artist in exar:
-                edit_ml_label('Title label', event.artist, rows=4)                    
+                edit_ml_label('Title label', event.artist, rows=4)
+                za = pp.exar
 
         if event.mouseevent.button != 1:   #  left mouse button
             return
@@ -1880,7 +1885,7 @@ if __name__ == "__main__":
                    verticalalignment='top', transform_rotates_text=True,
                    transform=ax.transAxes)
 
-    exar = [txt1, txt2, txt3, txt4, txt5]
+    pp.exar = [txt1, txt2, txt3, txt4, txt5]
 
     elli = Ellipse((2.2, 2.5), 0.1, 1, color=c_data, alpha=0.7, clip_on=False,
                    gid='elli')
@@ -1901,7 +1906,7 @@ if __name__ == "__main__":
                     transform=ax.transAxes)
 
 
-    exar += [elli, elli2, elli4]  #  you can add here or ...
+    pp.exar += [elli, elli2, elli4]  #  you can add here or ...
     
     cir1 = ax.add_artist(elli)
     cir2 = fig.add_artist(elli2)
@@ -1909,7 +1914,7 @@ if __name__ == "__main__":
     cir4 = ax.add_artist(elli4)
     cir5 = ax.add_artist(elli5)
 
-    exar += [cir1, cir2]          # ... or you can add here
+    pp.exar += [cir1, cir2, cir3]    # ... or you can add here
 
     rec1 = Rectangle((0.4, 0.4), 0.1, 0.1, color=c_ax, alpha=0.7, gid='rec1',
                      transform=ax.transAxes)
@@ -1919,7 +1924,7 @@ if __name__ == "__main__":
     rec2 = Rectangle((0.1, 0.5), 0.2, 1, color=c_data, alpha=0.7, gid='rec2')
     ax.add_artist(rec2)
 
-    exar += [rec1, rec2]
+    pp.exar += [rec1, rec2]
 
     poly = [[0.2, 0.4], [0.4, 0.4], [0.3, 0.6]]
     
@@ -1933,13 +1938,13 @@ if __name__ == "__main__":
                  transform=ax.transAxes)
     ax.add_patch(wed1)
 
-    exar += [tri1, wed1]
+    pp.exar += [tri1, wed1]
 
     farr = FancyArrow(1, -2, 1, -1, width=0.1, fc='#9B9114', ec='black',
                       gid='farr', transform=ax.transData)
     ax.add_patch(farr)
 
-    exar += [farr]
+    pp.exar += [farr]
 
     
 
@@ -1982,7 +1987,7 @@ if __name__ == "__main__":
     y_label = ax.set_ylabel('U[V]')
     ax_title = ax.set_title('Matplotlib plot quick cleanup example')
                           # 'An interactive pure Matplotlib plot example'
-    exar += [ax_title, x_label, y_label]
+    pp.exar += [ax_title, x_label, y_label]
 
 
 ##################################################################################
@@ -1996,7 +2001,7 @@ if __name__ == "__main__":
     see in Vistoole func definition     |        |   must be placed in 'exar' list
                                        \|/      \|/
     """
-    cXX, cYY, cBB, legV = Vistoole('xy+leg+exar', exar=exar,
+    cXX, cYY, cBB, legV = Vistoole('xy+leg+exar', exar=pp.exar,
                                    ax=ax, fig=fig, leg_addfunc=add_leg_event)
     # position or label name
     legV.set_focus(2, 's4')

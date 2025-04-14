@@ -21,6 +21,7 @@ import pandas as pd
 import numpy as np
 import vistoole as vs
 from shapes import Annulus, Ellipse, Circle, Wedge, Rectangle, Polygon, FancyArrow
+from shapes import PointPatch as pp
 import matplotlib.pyplot as plt
 import matplotlib.patches as patches
 
@@ -29,7 +30,7 @@ import matplotlib.patches as patches
 ######                                                                   ######
 ######                fig, ax  should be obtained first                  ######
 
-fig, ax = plt.subplots(num='Main')
+fig, ax = plt.subplots(num='Visdemo')
 
 
 ####################   CheckButton example             ########################
@@ -176,7 +177,7 @@ txt5 = ax.text(0.8, 0.8, 'This is\npik value\nof frequency',
                 transform=ax.transAxes)
 
 
-exar = [txt1, txt4, txt5]
+pp.exar = [txt1, txt4, txt5]
 
 elli = Ellipse((2.2, 2.5), 0.1, 1, color=c_data, alpha=0.7, clip_on=False,
                    gid='elli')
@@ -190,7 +191,7 @@ elli4 = Ellipse((0.05, 0.3), 0.1, 0.07, color=c_ax, alpha=0.7, gid='elli4',
                 transform=ax.transAxes)
                     
 
-exar += [elli, elli3, elli4]
+pp.exar += [elli, elli3, elli4]
     
 cir1 = ax.add_artist(elli)
 cir3 = ax.add_artist(elli3)
@@ -204,7 +205,7 @@ ax.add_artist(rec1)
 rec2 = Rectangle((0.1, 0.5), 0.2, 1, color=c_data, alpha=0.7, gid='rec2')
 ax.add_artist(rec2)
 
-exar += [rec1, rec2]
+pp.exar += [rec1, rec2]
 
 poly = [[0.2, 0.4], [0.3, 0.3], [0.25, 0.42]]
     
@@ -219,17 +220,14 @@ wed1 = Wedge((0.7, 0.2), 0.1, -135, 135, width=0.05, color=c_ax, alpha=0.7,
             transform=ax.transAxes)
 ax.add_patch(wed1)
 
-exar += [tri1, wed1]
+pp.exar += [tri1, wed1]
 
 farr = FancyArrow(0.3, 0.1, 0.1, 0.1, width=0.01, fc='#9B9114', ec='black', gid='farr',
                   transform=ax.transAxes)
 
-
-
-
 ax.add_patch(farr)
 
-exar += [farr]
+pp.exar += [farr]
 
 
 ##########################################################
@@ -270,7 +268,7 @@ x_label = ax.set_xlabel('Frequency [Hz]')
 y_label = ax.set_ylabel('|H[jw]|')
 ax_title = ax.set_title('Matplotlib plot quick cleanup example')
                           # 'An interactive pure Matplotlib plot example'
-exar += [ax_title, x_label, y_label]
+pp.exar += [ax_title, x_label, y_label]
                           
 ##################################################################################
 #############                                                    #################
@@ -283,7 +281,7 @@ There are many options in this arg --       --  extra movable content
 see in Vistoole func definition     |       |   must be placed in 'exar' list
                                    \|/     \|/
 """                                
-cXX, cYY, cBB, legV = vs.Vistoole('xylegexar', exar=exar,
+cXX, cYY, cBB, legV = vs.Vistoole('xylegexar', exar=pp.exar,
                                    fig=fig, ax=ax, leg_addfunc=add_leg_event)
 # position or label name
 legV.set_focus(2, 's4')

@@ -19,7 +19,8 @@ import matplotlib as mpl
 from matplotlib.artist import Artist
 import matplotlib.patches as patches
 import matplotlib.transforms as transforms
-from shapes import Ellipse, Annulus, FancyArrow
+from shapes import Ellipse, Annulus, Circle, Wedge, Rectangle, Polygon, FancyArrow
+from shapes import PointPatch as pp
 
 
 sg.theme('Default1')
@@ -128,7 +129,7 @@ def patch_style(patch):
     fig = patch.get_figure()
     axes = patch.axes
     
-    if hasattr(patch, 'angle'):
+    if hasattr(patch, 'angle') and not isinstance(patch, FancyArrow):
         angle = patch.angle
         angle_disabled = False
     else:
@@ -196,6 +197,16 @@ def patch_style(patch):
                 win['ar_width'].update(round(patch._width, 5))
                 win['hd_width'].update(round(patch._head_width, 5))
                 win['hd_length'].update(round(patch._head_length, 5))
+
+            elif isinstance(patch, Annulus):
+                win['an_width'].update(patch.width)
+                win['an_ra'].update(patch.a)
+                win['an_rb'].update(patch.b)
+
+            elif isinstance(patch, Ellipse):
+                win['el_width'].update(patch._width)
+                win['el_height'].update(patch._height)
+
 
 
         fig.canvas.draw()
@@ -285,7 +296,10 @@ def patch_style(patch):
         [
          sg.Checkbox('Delete item  !!! cannot be undone !!!', False, text_color='grey',
                      key='delete', enable_events=True, font=('bold', 12),
-                     tooltip="Done after 'Close'")
+                     tooltip="Done after 'Close'"),
+         sg.Push(),
+         sg.Button(' Duplicate ', key='duplicate', enable_events=True, font=('normal', 12),
+                   tooltip="Duplicate in 'Axes' or 'Figure' domain ")
         ]
       ]
 
@@ -418,12 +432,58 @@ def patch_style(patch):
         if event == 'zorder':
             zorder = round(str2dig(win['zorder'].get()), 2)
 
-        if event == 'grab':
-            grab = win['grab'].get()
-            patch.grab = grab
-            patch._make_verts()
-            patch.set_xy(patch.verts)
-            patch.dxy = patch.get_xy() - patch.get_xy()[0]
+
+        if event == 'duplicate':
+            if isinstance(patch, FancyArrow):
+                new_patch = FancyArrow(-0.05, -0.05, 0.1, 0.1, width=0.01, fc='#9B9114', ec='black', gid='farr',
+                                       picker=True, clip_on=False, zorder=3, transform=axes.transAxes)
+
+
+            elif isinstance(patch, Annulus):
+                new_patch = Annulus((-0.05, -0.05), (0.05, 0.15), 0.02, angle=0,
+                                    color='#9B9114', gid='annu',
+                                    picker=True, clip_on=False,
+                                    zorder=3, transform=axes.transAxes)
+
+
+            elif isinstance(patch, Ellipse):
+                new_patch = Ellipse((-0.05, -0.05), 0.05, 0.15, angle=0, fc='#9B9114', ec='black', gid='elli',
+                                picker=True, clip_on=False, zorder=3, transform=axes.transAxes)
+
+               
+            elif isinstance(patch, Circle):
+                 new_patch = Circle((-0.05, -0.05), 0.01, color=c_ax, alpha=0.7, gid='elli5', angle=45,
+                                      clip_on=False, transform=ax.transAxes)
+     
+
+            elif isinstance(patch, Wedge):
+                new_patch = Wedge((-0.05, -0.05), 0.1, -135, 135, width=0.05, color='black', alpha=0.7,
+                            gid='wedde', clip_on=False, transform=axes.transAxes)
+                
+            elif isinstance(patch, Rectangle):
+                new_patch = Rectangle((-0.05, -0.05), 0.2, 1, color='black', alpha=0.7, gid='recc',
+                                      clip_on=False, transform=axes.transAxes)
+
+            elif isinstance(patch, Polygon):
+                poly = patch.get_xy()
+                new_patch = Polygon(poly, color='black', alpha=0.7, clip_on=False,
+                                    gid='polly', angle=0,
+                                    transform=axes.transAxes)
+                new_patch.set_position((-0.05, -0.05))
+
+
+            pp.exar.append(new_patch)
+            axes.add_patch(new_patch)
+            new_patch.set_picker(True)
+
+            patch = new_patch
+
+            domain = 'Axes'
+
+            win['domain'].update('Axes')
+            win['clip_on'].update(value=False)
+
+            event = 'set_style'
 
 
         if event == 'set_style':
@@ -455,6 +515,7 @@ def patch_style(patch):
             if win['delete'].get():
                 try:
                     patch.set(visible=False)
+                    fig.canvas.draw()
                 except:
                     print('Cannot remove ', patch)
             #set_style()
@@ -546,7 +607,8 @@ def edit_ml_label(title, label, msg='Label name:', rows=1, redraw=True, text_too
 
 
     def set_style():
-        nonlocal domain
+        nonlocal label, patch, domain
+        
         input_text = win['input'].get()
         if input_text == 'None':
             return ''
@@ -761,7 +823,10 @@ def edit_ml_label(title, label, msg='Label name:', rows=1, redraw=True, text_too
         [
          sg.Checkbox('Delete item  !!! cannot be undone !!!', False, text_color='grey',
                      key='delete', enable_events=True, font=('bold', 12),
-                     tooltip="Done after 'Close'")
+                     tooltip="Done after 'Close'"),
+         sg.Push(),
+         sg.Button(' Duplicate ', key='duplicate', enable_events=True, font=('normal', 12),
+                   tooltip="Duplicate in 'Axes' or 'Figure' domain ")
         ]
       ]
     
@@ -832,6 +897,27 @@ def edit_ml_label(title, label, msg='Label name:', rows=1, redraw=True, text_too
             win.close()
             del win
             return label_text
+
+        if event == 'duplicate':
+            if domain == 'Figure':
+                label = fig.text(0.05, 0.05, 'This is copy text', clip_on=False,
+                                 bbox=dict(fc='white', edgecolor='black'))
+            else:
+                domain = 'Axes'
+                win['domain'].update('Axes')
+                label = axes.text(-0.05, -0.05, 'This is copy text', clip_on=False,
+                                  bbox=dict(fc='white', edgecolor='black'),
+                                  transform=axes.transAxes)
+
+            pp.exar.append(label)
+            label.set_picker(True)
+
+            patch = label.get_bbox_patch()
+
+            win['clip_on'].update(value=False)
+
+            event = 'set_style'
+            
 
         if event == 'set_style':
             label_text = set_style()
