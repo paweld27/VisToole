@@ -13,3 +13,6 @@ then completely free, python library.
 
 ![Vistoole](https://github.com/user-attachments/assets/c6fdf89f-886f-4b1b-885d-fdbb6a548928)
 
+![Menu_txt](https://github.com/user-attachments/assets/97d601f4-35a8-49ba-b4a9-e1927ab29cc8)
+
+![Menu_art](https://github.com/user-attachments/assets/b8825eb5-cf91-490c-8192-942aed7b6c22)
