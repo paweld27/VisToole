@@ -16,3 +16,5 @@ then completely free, python library.
 ![Menu_txt](https://github.com/user-attachments/assets/9730a4c3-fb08-4781-88d5-e772374ba93f)
 
 ![Menu_art](https://github.com/user-attachments/assets/31ad558e-ac80-4bf9-aba1-b41bbac6814b)
+
+![Menu_art2](https://github.com/user-attachments/assets/6781fc4c-a76d-42df-9315-e448f8a80d2a)
