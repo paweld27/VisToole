@@ -11,7 +11,7 @@ libraries used:
 vis_menu.py - the edit menu was created based on the PySimpleGUI - 4.60.5 in 2023, 
 then completely free, python library.
 
-![Vistoole](https://github.com/user-attachments/assets/c6fdf89f-886f-4b1b-885d-fdbb6a548928)
+![Vistoole](https://github.com/user-attachments/assets/eb69f0fd-5b53-4a03-bf15-3f3f936ea6ca)
 
 ![Menu_txt](https://github.com/user-attachments/assets/b9d9732d-34d8-4139-ac35-8bd24f52884c)
 
