@@ -31,6 +31,9 @@ sg.PySimpleGUI.TOOLTIP_FONT = ("Helvetica", 11)
 sg.PySimpleGUI.DEFAULT_TOOLTIP_TIME = 500
 sg.PySimpleGUI.DEFAULT_TOOLTIP_OFFSET = (10, 20)  #  (0, -20)
 
+deb_box_color = '#ff00ff'
+deb_box_lw = 2
+
 
 #sg_cpr_text = 'made by PySimpleGUI 4.60.05'
 #sg_cpr_text = 'made by free open source software'+'\n'+\
@@ -100,12 +103,71 @@ def get_domain(artist):
             domain = 'Data'
     else:
         domain = 'Figure'
+
     return domain
+
+
+class Deb_box:
+    
+    def __init__(self, artist):
+        self.fig = artist.get_figure()
+        self.axes = artist.axes
+        self.domain = get_domain(artist)
+
+        if hasattr(artist, 'get_text'):
+            patch = artist.get_bbox_patch()
+            if patch == None:
+                patch = artist
+        else:
+            patch = artist
+
+        if self.domain == 'Figure':
+            deb_bbox = patch.get_window_extent()
+            transform = None
+        else:
+            deb_bbox = patch.get_window_extent().transformed(self.axes.transAxes.inverted())
+            transform = self.axes.transAxes
+        
+        deb_bbox = deb_bbox.expanded(1.2, 1.2)
+        self.deb_rect = Rectangle(xy=deb_bbox.p0, width=deb_bbox.width,
+                                  height=deb_bbox.height, transform=transform,
+                                  ls='--', lw=deb_box_lw, zorder=8, 
+                                  ec=deb_box_color, fill=False, clip_on=False)
+
+
+        if self.domain == 'Figure':
+            self.fig.add_artist(self.deb_rect)
+        else:
+            self.axes.add_artist(self.deb_rect)
+        self.fig.canvas.draw()
+
+    def __call__(self):
+        self.deb_rect.remove()
+        self.fig.canvas.draw()
+
+
+def take_position(artist):
+    if hasattr(artist, 'get_position'):
+        xpos, ypos = artist.get_position()
+    elif hasattr(artist, 'get_x'):
+        xpos, ypos = artist.get_x(), artist.get_y()
+    else:
+        xpos = ypos = 0
+
+    return r'(%.4f, %.4f)' % (xpos, ypos)
+    
 
     
 def patch_style(patch):
     """  curr = MoveCurr_type   """
 
+    fig = patch.get_figure()
+    axes = patch.axes
+
+    domain = get_domain(patch)
+    
+    deb_rect = Deb_box(patch)
+    
     title_win = 'Patch style'
     
     fc_color = patch.get_facecolor()             #(r,g,b,a)
@@ -123,11 +185,10 @@ def patch_style(patch):
 
     zorder = patch.get_zorder()
     clip_on = patch.get_clip_on()
-    
-    domain = get_domain(patch)
+
+    position = take_position(patch)
+#    print(position)
        
-    fig = patch.get_figure()
-    axes = patch.axes
     
     if hasattr(patch, 'angle') and not isinstance(patch, FancyArrow):
         angle = patch.angle
@@ -145,6 +206,9 @@ def patch_style(patch):
     jump_disabled = not hasattr(patch, 'get_position')
 
     def set_style():
+        nonlocal deb_rect
+
+        deb_rect()
         
         patch.set(facecolor=hex2rgba(face_color, alpha),
                   edgecolor=hex2rgba(edge_color, ln_alpha),
@@ -165,9 +229,9 @@ def patch_style(patch):
             patch.set_radii((str2dig(win['an_ra'].get()),
                              str2dig(win['an_rb'].get())))
 
-        elif isinstance(patch, Ellipse):
-            patch.width  = str2dig(win['el_width'].get())
-            patch.height = str2dig(win['el_height'].get())
+        elif isinstance(patch, (Ellipse, Rectangle)):
+            patch.set_width(str2dig(win['el_width'].get()))
+            patch.set_height(str2dig(win['el_height'].get()))
            
 
         new_domain = domain
@@ -177,6 +241,7 @@ def patch_style(patch):
                 if new_domain == 'Axes':         # data -> axes
                     if hasattr(patch, 'jumper'):
                         patch.jump_to_axes()
+                        new_pos = patch.get_position()
                     else:
                         new_pos = axes.transLimits.transform(patch.get_position())
                         patch.set_position(new_pos)
@@ -185,6 +250,7 @@ def patch_style(patch):
                 else:
                     if hasattr(patch, 'jumper'):
                         patch.jump_to_data()
+                        new_pos = patch.get_position()
                     else:                       # axes -> data
                         new_pos = axes.transLimits.inverted().transform(patch.get_position())
                         patch.set_position(new_pos)
@@ -192,6 +258,7 @@ def patch_style(patch):
                     #patch._recompute_transform()
 
                 patch.set(transform=transform)
+
 
             if isinstance(patch, FancyArrow):
                 win['ar_width'].update(round(patch._width, 5))
@@ -203,18 +270,25 @@ def patch_style(patch):
                 win['an_ra'].update(patch.a)
                 win['an_rb'].update(patch.b)
 
-            elif isinstance(patch, Ellipse):
+            elif isinstance(patch, (Ellipse, Rectangle)):
                 win['el_width'].update(patch._width)
                 win['el_height'].update(patch._height)
 
+        position = take_position(patch)
+        win['position'].update('Position: '+ position)
 
-
+        deb_rect = Deb_box(patch)
         fig.canvas.draw()
         return new_domain
 
 ###############################################################################################    
 ####                               patch menu implementation                               ####
 ####                                                                                       ####
+
+    position_layout = sg.Text('Position: '+ position, font=('normal', 12), key='position',
+                              tooltip=' FancyArrow -> tail position if last grab otherwise head ' + '\n' +
+                                      ' Rectangle    -> lower, left or first vertex ' + '\n' +
+                                      ' Ellipse          -> center ')
     
     layout1 = [        
                
@@ -294,14 +368,20 @@ def patch_style(patch):
     delete_layout = [
         [sg.HSeparator(pad=(0, 10))],
         [
-         sg.Checkbox('Delete item  !!! cannot be undone !!!', False, text_color='grey',
+         sg.Checkbox('Delete item  !!! cannot be undone !!!', False,
+                     text_color='grey', background_color=sg_bgcolor,
                      key='delete', enable_events=True, font=('bold', 12),
                      tooltip="Done after 'Close'"),
          sg.Push(),
-         sg.Button(' Duplicate ', key='duplicate', enable_events=True, font=('normal', 12),
-                   tooltip="Duplicate in 'Axes' or 'Figure' domain ")
+         sg.Button(' Duplicate ', key='duplicate', enable_events=True, font=('normal', 12))
         ]
       ]
+
+    
+    set_style_layout = [
+            [sg.Text('  ', font=('normal', 6))],
+            [sg.Push(), sg.Button('Set style', key='set_style', enable_events=True,
+                                   font=('normal', 12), button_color=('white', 'green'))]]
 
     ok_layout = [
         [sg.HSeparator(pad=(0, 10))],
@@ -312,8 +392,6 @@ def patch_style(patch):
          sg.Text(sg_cpr_text, font=('italic', 8)),
 
          sg.Push(),
-         sg.Button('Set style', key='set_style', enable_events=True, font=('normal', 12),
-                   button_color=('white', 'green'))
          ]
         ]
 
@@ -323,9 +401,11 @@ def patch_style(patch):
     else:
         layout = layout1 + [transform_layout]
 
+    no_position = True
+
     if isinstance(patch, FancyArrow):    
         fancy_arrow_layout = [
-        
+             [ position_layout ],
              sg.Text('ar.width: ', font=('normal', 12)),
              sg.Input(default_text=round(patch._width, 5), key='ar_width', font=('normal', 12),
                       size=(7, None)),
@@ -342,11 +422,12 @@ def patch_style(patch):
             ]
         
         layout += [fancy_arrow_layout]
+        no_position = False
 
 
     elif isinstance(patch, Annulus):    
         annulus_arrow_layout = [
-        
+            [ position_layout ],
              sg.Text('an.width: ', font=('normal', 12)),
              sg.Input(default_text=round(patch.width, 5), key='an_width', font=('normal', 12),
                       size=(7, None)),
@@ -363,11 +444,12 @@ def patch_style(patch):
             ]
         
         layout += [annulus_arrow_layout]
+        no_position = False
 
 
-    elif isinstance(patch, Ellipse):    
+    elif isinstance(patch, (Ellipse, Rectangle)):    
         ellipse_arrow_layout = [
-            [
+            [ position_layout,
              sg.Push(),
              sg.Text('width: ', font=('normal', 12)),
              sg.Input(default_text=round(patch._width, 5), key='el_width', font=('normal', 12),
@@ -382,14 +464,18 @@ def patch_style(patch):
             ]
         
         layout += [ellipse_arrow_layout]
+        no_position = False
 
-
-    layout += [delete_layout] + [ok_layout]
         
+    if no_position:
+        layout += [[position_layout]]
 
+    layout += [set_style_layout] + [delete_layout] + [ok_layout]
+        
+ 
     win = sg.Window(title_win, layout, finalize = True, return_keyboard_events=True,
-                    force_toplevel=True,
-                    keep_on_top=True , modal=True,
+                    force_toplevel=True, location=(1000, 300),
+                    keep_on_top=True, modal=True,
                     )
 
     butt = ['face', 'edge', 'Ok', 'set_style']
@@ -434,53 +520,70 @@ def patch_style(patch):
 
 
         if event == 'duplicate':
+            if domain == 'Axes':
+                transform = axes.transAxes
+            elif domain == 'Data':
+                transform = axes.transData
+            else:
+                transform = fig.transFigure
+                
             if isinstance(patch, FancyArrow):
-                new_patch = FancyArrow(-0.05, -0.05, 0.1, 0.1, width=0.01, fc='#9B9114', ec='black', gid='farr',
-                                       picker=True, clip_on=False, zorder=3, transform=axes.transAxes)
+                xy = patch.get_dxdy()
+                new_patch = FancyArrow(-0.05, -0.05, xy[0], xy[1], width=0.01, fc='#9B9114', ec='black', gid='farr',
+                                       picker=True, clip_on=False, zorder=3, transform=transform)
 
 
             elif isinstance(patch, Annulus):
                 new_patch = Annulus((-0.05, -0.05), (0.05, 0.15), 0.02, angle=0,
                                     color='#9B9114', gid='annu',
                                     picker=True, clip_on=False,
-                                    zorder=3, transform=axes.transAxes)
+                                    zorder=3, transform=transform)
 
 
             elif isinstance(patch, Ellipse):
                 new_patch = Ellipse((-0.05, -0.05), 0.05, 0.15, angle=0, fc='#9B9114', ec='black', gid='elli',
-                                picker=True, clip_on=False, zorder=3, transform=axes.transAxes)
+                                picker=True, clip_on=False, zorder=3, transform=transform)
 
                
             elif isinstance(patch, Circle):
                  new_patch = Circle((-0.05, -0.05), 0.01, color=c_ax, alpha=0.7, gid='elli5', angle=45,
-                                      clip_on=False, transform=ax.transAxes)
+                                      clip_on=False, transform=transform)
      
 
             elif isinstance(patch, Wedge):
                 new_patch = Wedge((-0.05, -0.05), 0.1, -135, 135, width=0.05, color='black', alpha=0.7,
-                            gid='wedde', clip_on=False, transform=axes.transAxes)
+                            gid='wedde', clip_on=False, transform=transform)
                 
             elif isinstance(patch, Rectangle):
-                new_patch = Rectangle((-0.05, -0.05), 0.2, 1, color='black', alpha=0.7, gid='recc',
-                                      clip_on=False, transform=axes.transAxes)
+                new_patch = Rectangle((-0.05, -0.05), patch.get_width(), patch.get_height(),
+                                      color='black', alpha=0.7, gid='recc',
+                                      clip_on=False, transform=transform)
 
             elif isinstance(patch, Polygon):
                 poly = patch.get_xy()
                 new_patch = Polygon(poly, color='black', alpha=0.7, clip_on=False,
                                     gid='polly', angle=0,
-                                    transform=axes.transAxes)
+                                    transform=transform)
                 new_patch.set_position((-0.05, -0.05))
 
 
+
+            deb_rect()
+
             pp.exar.append(new_patch)
-            axes.add_patch(new_patch)
+
+            if domain == 'Figure':
+                new_patch.set_position((0.1, 0.1))
+                fig.add_artist(new_patch)
+            else:
+                axes.add_artist(new_patch)
+                
             new_patch.set_picker(True)
 
             patch = new_patch
 
-            domain = 'Axes'
+            deb_rect = Deb_box(patch)
 
-            win['domain'].update('Axes')
             win['clip_on'].update(value=False)
 
             event = 'set_style'
@@ -501,6 +604,7 @@ def patch_style(patch):
         if event in ('Escape:27', 'Cancel', sg.WIN_CLOSED):
             win.close()
             del win
+            deb_rect()
             return None
 
         if event == 'delete':
@@ -515,12 +619,14 @@ def patch_style(patch):
             if win['delete'].get():
                 try:
                     patch.set(visible=False)
+                    pp.exar.remove(patch)
                     fig.canvas.draw()
                 except:
                     print('Cannot remove ', patch)
             #set_style()
             win.close()
             del win
+            deb_rect()
             return
 
 
@@ -531,12 +637,17 @@ def edit_ml_label(title, label, msg='Label name:', rows=1, redraw=True, text_too
         return
 
     fig = label.get_figure()
-    
+    axes = label.axes
     domain = get_domain(label)
-    
+
+    deb_rect = Deb_box(label)
+      
     label_text = label.get_text()
 
-    axes = label.axes
+    xpos, ypos = label.get_position()
+
+    position = r'(%.4f, %.4f)' % (xpos, ypos)
+
 
     ltext = label_text.split('\n')
     max_lab = max([*map(lambda x: len(x), ltext)])
@@ -588,7 +699,6 @@ def edit_ml_label(title, label, msg='Label name:', rows=1, redraw=True, text_too
                             clip_on=clip_on,
                             alpha=0))
         patch = label.get_bbox_patch()
-        
 
     if patch != None:
 
@@ -607,7 +717,10 @@ def edit_ml_label(title, label, msg='Label name:', rows=1, redraw=True, text_too
 
 
     def set_style():
-        nonlocal label, patch, domain
+        nonlocal label, patch, domain, deb_rect
+
+        deb_rect()
+
         
         input_text = win['input'].get()
         if input_text == 'None':
@@ -671,6 +784,10 @@ def edit_ml_label(title, label, msg='Label name:', rows=1, redraw=True, text_too
 
                 label.set(transform=transform)
                 domain = new_domain
+
+        position = take_position(label)
+        win['position'].update('Position: '+ position)
+
                 
         keep_angle_text = f'keep {domain} →'
         keep_angle_sub_text = f'(45 degree ≡ {domain} diagonal)'
@@ -678,13 +795,16 @@ def edit_ml_label(title, label, msg='Label name:', rows=1, redraw=True, text_too
         win['keep_angle'].update(text=keep_angle_text)
         win['sub_angle_tx'].update(keep_angle_sub_text)
 
+        
         fig.canvas.draw()
+        deb_rect = Deb_box(label)
         return input_text
 
 ###############################################################################################    
 ####                               text/label style menu implementation                    ####
 ####                                                                                       ####
- 
+
+    position_layout = [sg.Text('Position: '+ position, font=('normal', 12), key='position')]
 
     zorder_layout = [
         sg.Push(),
@@ -703,11 +823,18 @@ def edit_ml_label(title, label, msg='Label name:', rows=1, redraw=True, text_too
          sg.Combo(['Data', 'Axes'] , default_value=domain,
                   key='domain', font=('bold', 12), readonly=True,
                   button_arrow_color='blue', button_background_color='white', size=(5, None))
-         ] + zorder_layout
+         ] + zorder_layout,
+        
+        position_layout
         ]
 
-    fig_domain_layout = [[ sg.Text(str(fig), font=('normal', 12))] + zorder_layout]
+    fig_domain_layout = [[ sg.Text(str(fig), font=('normal', 12))] + zorder_layout,
+                         position_layout
+                         ]
 
+    set_style_layout = [
+            [sg.Push(), sg.Button('Set style', key='set_style', enable_events=True,
+                                   font=('normal', 12), button_color=('white', 'green'))]]
 
     ok_layout = [
         [sg.HSeparator(pad=(0, 10))],
@@ -717,9 +844,7 @@ def edit_ml_label(title, label, msg='Label name:', rows=1, redraw=True, text_too
 
          sg.Text(sg_cpr_text, font=('italic', 8)),
 
-         sg.Push(),        
-         sg.Button('Set style', key='set_style', enable_events=True, font=('normal', 12),
-                   button_color=('white', 'green'))
+         sg.Push()
          ]
     ]
 
@@ -821,24 +946,26 @@ def edit_ml_label(title, label, msg='Label name:', rows=1, redraw=True, text_too
     delete_layout = [
         [sg.HSeparator(pad=(0, 10))],
         [
-         sg.Checkbox('Delete item  !!! cannot be undone !!!', False, text_color='grey',
+         sg.Checkbox('Delete item  !!! cannot be undone !!!', False,
+                     text_color='grey', background_color=sg_bgcolor,
                      key='delete', enable_events=True, font=('bold', 12),
                      tooltip="Done after 'Close'"),
          sg.Push(),
-         sg.Button(' Duplicate ', key='duplicate', enable_events=True, font=('normal', 12),
-                   tooltip="Duplicate in 'Axes' or 'Figure' domain ")
+         sg.Button(' Duplicate ', key='duplicate', enable_events=True, font=('normal', 12))
         ]
       ]
     
     if domain == 'Figure':
         layout = text_layout + [fig_domain_layout] + [frame_layout] + \
-                [delete_layout] + [ok_layout]
+                 [set_style_layout] + [delete_layout] + [ok_layout]
     else:
         layout = text_layout + [transform_layout] + [frame_layout] +  \
-                [delete_layout] + [ok_layout]
+                 [set_style_layout] + [delete_layout] + [ok_layout]
 
   
-    win = sg.Window(title, layout, finalize = True, keep_on_top=True, modal=True, return_keyboard_events=True)
+    win = sg.Window(title, layout, finalize = True, keep_on_top=True, modal=True,
+                    return_keyboard_events=True,  location=(1000, 300),
+                    )
     win['input'].widget.config(wrap='none')  # ustawiane przez Tkinter
 
     butt = ['color', 'alpha', 'Ok', 'set_style', 'face', 'edge']
@@ -896,23 +1023,30 @@ def edit_ml_label(title, label, msg='Label name:', rows=1, redraw=True, text_too
         if event in ('Escape:27', 'Cancel', sg.WIN_CLOSED):
             win.close()
             del win
+            deb_rect()
             return label_text
 
         if event == 'duplicate':
+            deb_rect()
             if domain == 'Figure':
                 label = fig.text(0.05, 0.05, 'This is copy text', clip_on=False,
                                  bbox=dict(fc='white', edgecolor='black'))
             else:
-                domain = 'Axes'
-                win['domain'].update('Axes')
+                if domain == 'Axes':
+                    transform = axes.transAxes
+                else:
+                    transform = axes.transData
                 label = axes.text(-0.05, -0.05, 'This is copy text', clip_on=False,
                                   bbox=dict(fc='white', edgecolor='black'),
-                                  transform=axes.transAxes)
+                                  transform=transform)
+
 
             pp.exar.append(label)
             label.set_picker(True)
 
             patch = label.get_bbox_patch()
+
+            deb_rect = Deb_box(label)
 
             win['clip_on'].update(value=False)
 
@@ -935,11 +1069,13 @@ def edit_ml_label(title, label, msg='Label name:', rows=1, redraw=True, text_too
                 try:
                     label.set(visible=False)  # better hide than remove() 
                     patch.set(visible=False)
+                    pp.exar.remove(label)
                 except:
                     print('Cannot remove ', patch)
 
             win.close()
             del win
+            deb_rect()
             return label_text
         
 

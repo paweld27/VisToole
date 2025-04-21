@@ -292,6 +292,9 @@ class FancyArrow(patches.FancyArrow, Polygon):
             self.set_xy(self.verts)
             self.dxy = self.get_xy() - self.get_xy()[0]
 
+    def get_dxdy(self):
+        return (self._dx, self._dy)
+
     def _update_param(self):
         xy = self.get_xy()        
         self._width = np.hypot(xy[3][0]-xy[4][0], xy[3][1]-xy[4][1])      # start

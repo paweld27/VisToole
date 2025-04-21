@@ -1732,7 +1732,7 @@ if __name__ == "__main__":
 ######                                                                   ######
 ######                fig, ax  should be obtained first                  ######
 
-    fig, ax = plt.subplots(num='Matplotlib')
+    fig, ax = plt.subplots(num='Vistoole')
 
 
 ####################   CheckButton example             ########################
@@ -1867,7 +1867,7 @@ if __name__ == "__main__":
                     color=c_fig, fontsize=12, fontweight='bold', bbox=b_fig,
                     rotation=35)
 
-    txt2 = ax.text(0.15,0.15, '2. This is flying label in axis space ',
+    txt2 = ax.text(0.15,0.05, '2. This is flying label in axis space ',
                    color=c_ax, fontsize=12, fontweight='bold', bbox=b_ax,
                    transform=ax.transAxes)
 
@@ -1902,9 +1902,6 @@ if __name__ == "__main__":
     elli4 = Ellipse((0.05, 0.3), 0.1, 0.07, color=c_ax, alpha=0.7, gid='elli4',
                     transform=ax.transAxes)
                     
-    elli5 = Circle((0.2, 0.4), 0.01, color=c_ax, alpha=0.7, gid='elli5', angle=45,
-                    transform=ax.transAxes)
-
 
     pp.exar += [elli, elli2, elli4]  #  you can add here or ...
     
@@ -1912,7 +1909,6 @@ if __name__ == "__main__":
     cir2 = fig.add_artist(elli2)
     cir3 = ax.add_artist(elli3)
     cir4 = ax.add_artist(elli4)
-    cir5 = ax.add_artist(elli5)
 
     pp.exar += [cir1, cir2, cir3]    # ... or you can add here
 
@@ -1946,6 +1942,12 @@ if __name__ == "__main__":
 
     pp.exar += [farr]
 
+    farr2 = FancyArrow(0.28, 0.3, 0.2, 0.1, width=0.01, fc='red', ec='black',
+                      gid='farr2')
+    
+    fig.add_artist(farr2)
+
+    pp.exar += [farr2]
     
 
 ##########################################################
