@@ -13,7 +13,6 @@ then completely free, python library.
 
 ![Vistoole](https://github.com/user-attachments/assets/eb69f0fd-5b53-4a03-bf15-3f3f936ea6ca)
 
-![Menu_txt](https://github.com/user-attachments/assets/b9d9732d-34d8-4139-ac35-8bd24f52884c)
+![Menu_txt](https://github.com/user-attachments/assets/9730a4c3-fb08-4781-88d5-e772374ba93f)
 
-![Menu_art](https://github.com/user-attachments/assets/16c309ee-8032-4fbc-8337-fabb6d4a518e)
-
+![Menu_art](https://github.com/user-attachments/assets/31ad558e-ac80-4bf9-aba1-b41bbac6814b)
